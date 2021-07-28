@@ -17,10 +17,6 @@ path = "src/announce.rs"
 name = "listen"
 path = "src/listen.rs"
 
-[[bin]]
-name = "announce_and_wait"
-path = "src/announce_and_wait.rs"
-
 [lib]
 name = "simpdiscoverylib"
 path = "src/lib/lib.rs"

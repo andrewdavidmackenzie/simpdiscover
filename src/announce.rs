@@ -10,3 +10,22 @@ fn main() -> std::io::Result<()> {
 
     Ok(())
 }
+
+#[cfg(test)]
+mod test {
+    use simpdiscoverylib::BeaconSender;
+    use simpdiscoverylib::beacon_listener;
+
+    #[test]
+    fn beacon_is_received() {
+        let port = 34254;
+        if let Ok(beacon) = BeaconSender::new(port) {
+            std::thread::spawn(move || {
+                let _ = beacon.send_loop();
+            });
+        }
+
+        let beacon = beacon_listener(port).expect("Could not listen for beacon");
+        assert_eq!(beacon.message, "Hello");
+    }
+}

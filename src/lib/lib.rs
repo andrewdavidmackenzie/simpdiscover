@@ -66,7 +66,7 @@ pub fn beacon_listener(port: usize) -> std::io::Result<Beacon> {
     info!("Socket bound to: {}", address);
 
     // Receives a single datagram message on the socket.
-    let mut buffer = [0; 10];
+    let mut buffer = [0; 5];
 
     info!("Listening on: '{}'", address);
     let (_number_of_bytes, source_address) = socket.recv_from(&mut buffer)?;
