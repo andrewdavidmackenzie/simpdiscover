@@ -1,29 +1,57 @@
+#![deny(missing_docs)]
+#![warn(clippy::unwrap_used)]
+
+//! This is the `simpdiscoverylib` create for simple UDP databagram based discovery of services
+//! on a LAN
+
 use std::net::UdpSocket;
 use std::time::Duration;
 use log::info;
 
+
 //const BROADCAST_ADDRESS : &str = "192.168.2.255";
 const BROADCAST_ADDRESS : &str = "255.255.255.255";
 
-pub fn beacon(port: usize) -> std::io::Result<()> {
-    let bind_address = "0.0.0.0:0";
-    let socket:UdpSocket = UdpSocket::bind(bind_address)?;
-    info!("Socket bound to: {}", bind_address);
+/// `Beacon` is used to send UDP Datagram beacons to the Broadcast IP address on the LAN
+pub struct Beacon {
+    socket: UdpSocket,
+    broadcast_address: String,
+    message: &'static [u8],
+}
 
-    socket.set_broadcast(true)?;
-    info!("Broadcast mode set to ON");
+impl Beacon {
+    /// Create a new `Beacon` setup to send beacons on the specified `port`
+    pub fn new(port: usize) -> std::io::Result<Self> {
+        let bind_address = "0.0.0.0:0";
+        let socket:UdpSocket = UdpSocket::bind(bind_address)?;
+        info!("Socket bound to: {}", bind_address);
 
-    let message = "Hello";
-    let broadcast_address = format!("{}:{}", BROADCAST_ADDRESS, port);
-    socket.send_to(message.as_bytes(), &broadcast_address)?;
+        socket.set_broadcast(true)?;
+        info!("Broadcast mode set to ON");
 
-    loop {
-        info!("Sending Beacon to: '{}'", broadcast_address);
-        socket.send_to(message.as_bytes(), &broadcast_address)?;
-        std::thread::sleep(Duration::from_secs(1));
+        Ok(Self {
+            socket,
+            broadcast_address: format!("{}:{}", BROADCAST_ADDRESS, port),
+            message : "Hello".as_bytes()
+        })
+    }
+
+    /// Enter an infinite loop sending beacons periodically
+    pub fn send_loop(&self) -> std::io::Result<()> {
+        loop {
+            self.send_one_beacon()?;
+            std::thread::sleep(Duration::from_secs(1));
+        }
+    }
+
+    /// Send a single beacon out
+    pub fn send_one_beacon(&self) -> std::io::Result<usize> {
+        info!("Sending Beacon to: '{}'", self.broadcast_address);
+        self.socket.send_to(self.message, &self.broadcast_address)
     }
 }
 
+/// Listen for a beacon on the specified port - blocking until one is received
 pub fn beacon_listener(port: usize) -> std::io::Result<String> {
     let address = format!("{}:{}", "0.0.0.0", port);
     let socket = UdpSocket::bind(&address)?;

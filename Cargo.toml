@@ -23,3 +23,5 @@ path = "src/lib/lib.rs"
 
 [dependencies]
 log = "0.4.6"
+
+simplog = "~1.3" # Only used by smaple binaries provided, not a dependency of the library
