@@ -59,22 +59,36 @@ pub struct Beacon {
     pub message: String
 }
 
-/// Listen for a beacon on the specified port - blocking until one is received
-pub fn beacon_listener(port: usize) -> std::io::Result<Beacon> {
-    let address = format!("{}:{}", "0.0.0.0", port);
-    let socket = UdpSocket::bind(&address)?;
-    info!("Socket bound to: {}", address);
+/// `BeaconListener` listens for new `Beacons` on the specified port
+pub struct BeaconListener {
+    socket: UdpSocket,
+}
 
-    // Receives a single datagram message on the socket.
-    let mut buffer = [0; 5];
+impl BeaconListener {
+    /// Create a new `BeaconListener` on the specified port
+    pub fn new(port: usize) -> std::io::Result<Self> {
+        let address = format!("{}:{}", "0.0.0.0", port);
+        let socket = UdpSocket::bind(&address)?;
+        info!("Socket bound to: {}", address);
 
-    info!("Listening on: '{}'", address);
-    let (_number_of_bytes, source_address) = socket.recv_from(&mut buffer)?;
-    let message = String::from_utf8(Vec::from(buffer)).unwrap();
-    info!("Message '{}' received from Address: '{}'", message, source_address);
+        Ok(Self {
+            socket
+        })
+    }
 
-    Ok(Beacon{
-        source_ip: source_address.to_string(),
-        message
-    })
+    /// Wait for a beacon on the port specified in `BeaconListener::new()`
+    pub fn wait(&self) -> std::io::Result<Beacon> {
+        // Receives a single datagram message on the socket.
+        let mut buffer = [0; 5];
+
+        info!("Waiting for beacon");
+        let (_number_of_bytes, source_address) = self.socket.recv_from(&mut buffer)?;
+        let message = String::from_utf8(Vec::from(buffer)).unwrap();
+        info!("Message '{}' received from Address: '{}'", message, source_address);
+
+        Ok(Beacon{
+            source_ip: source_address.to_string(),
+            message
+        })
+    }
 }

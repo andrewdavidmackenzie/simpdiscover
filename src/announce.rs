@@ -13,8 +13,7 @@ fn main() -> std::io::Result<()> {
 
 #[cfg(test)]
 mod test {
-    use simpdiscoverylib::BeaconSender;
-    use simpdiscoverylib::beacon_listener;
+    use simpdiscoverylib::{BeaconSender, BeaconListener};
 
     #[test]
     fn beacon_is_received() {
@@ -25,7 +24,8 @@ mod test {
             });
         }
 
-        let beacon = beacon_listener(port).expect("Could not listen for beacon");
+        let listener = BeaconListener::new(34254).expect("Could not create listener");
+        let beacon = listener.wait().expect("Failed to receive beacon");
         assert_eq!(beacon.message, "Hello");
     }
 }
