@@ -12,14 +12,14 @@ use log::info;
 //const BROADCAST_ADDRESS : &str = "192.168.2.255";
 const BROADCAST_ADDRESS : &str = "255.255.255.255";
 
-/// `Beacon` is used to send UDP Datagram beacons to the Broadcast IP address on the LAN
-pub struct Beacon {
+/// `BeaconSender` is used to send UDP Datagram beacons to the Broadcast IP address on the LAN
+pub struct BeaconSender {
     socket: UdpSocket,
     broadcast_address: String,
     message: &'static [u8],
 }
 
-impl Beacon {
+impl BeaconSender {
     /// Create a new `Beacon` setup to send beacons on the specified `port`
     pub fn new(port: usize) -> std::io::Result<Self> {
         let bind_address = "0.0.0.0:0";
@@ -51,8 +51,16 @@ impl Beacon {
     }
 }
 
+/// `Beacon` contains information about the beacon that was received by a `BeaconListener`
+pub struct Beacon {
+    /// The IP address and port the beacon was sent from
+    pub source_ip: String,
+    /// The message included in the beacon
+    pub message: String
+}
+
 /// Listen for a beacon on the specified port - blocking until one is received
-pub fn beacon_listener(port: usize) -> std::io::Result<String> {
+pub fn beacon_listener(port: usize) -> std::io::Result<Beacon> {
     let address = format!("{}:{}", "0.0.0.0", port);
     let socket = UdpSocket::bind(&address)?;
     info!("Socket bound to: {}", address);
@@ -62,8 +70,11 @@ pub fn beacon_listener(port: usize) -> std::io::Result<String> {
 
     info!("Listening on: '{}'", address);
     let (_number_of_bytes, source_address) = socket.recv_from(&mut buffer)?;
+    let message = String::from_utf8(Vec::from(buffer)).unwrap();
+    info!("Message '{}' received from Address: '{}'", message, source_address);
 
-    info!("Message '{}' received from Address: '{}'", String::from_utf8(Vec::from(buffer)).unwrap(), source_address);
-
-    Ok(source_address.to_string())
+    Ok(Beacon{
+        source_ip: source_address.to_string(),
+        message
+    })
 }
