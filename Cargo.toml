@@ -1,0 +1,14 @@
+[package]
+name = "simpdiscover"
+version = "0.1.0"
+edition = "2018"
+
+[[bin]]
+name = "announce"
+path = "src/announce.rs"
+
+[[bin]]
+name = "listen"
+path = "src/listen.rs"
+
+[dependencies]
