@@ -37,10 +37,12 @@ pub struct BeaconSender {
 }
 
 /// # Example of a BeaconSender
-/// This example will just exit here and the thread above will die with the whole process
-/// in your example either don't start a background thread and just loop forever sending
-/// or have some other way to keep the process (and hence the sending thread) alive so
-/// beacons are actually sent.
+/// This example will just exit at the end and the thread above will die along with the process.
+///
+/// In your own code, either:
+///   * don't start a background thread and just loop forever sending beacons in main thread, or
+///   * have some other way to keep the process (and hence the sending thread) alive so
+///     beacons are actually sent before process ends
 ///
 /// ```
 /// use simpdiscoverylib::{BeaconSender, BeaconListener};
