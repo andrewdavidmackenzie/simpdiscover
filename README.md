@@ -27,6 +27,20 @@ processes on the same machine) in the Local Area network (LAN) using UDP Broadca
 * A some Doc tests to keep the API docs correct
 * Github Action to build then clippy check then test all
 
+## 'announce' binary
+Run this binary from the repo using `cargo run --bin announce` or just `announce` if you have installed the
+crate with cargo.
+
+It takes an optional command line parameter to specify the String for the beacon message to announce:
+`cargo run --bin announce -- Hello`
+
+## 'listen' binary
+Run this binary from the repo using `cargo run --bin listen` or just `listen` if you have installed the
+crate with cargo.
+
+It takes an optional command line parameter to specify the String for the beacon message to wait for before exiting:
+`cargo run --bin listen -- Hello`
+
 # Implementation Notes
 Simplest solution
 Server
@@ -36,35 +50,17 @@ Server
 - stop sending a specific beacon
 - able to send multiple beacons
 - stop all beacons with one call?
-- set sending frequency
-- set name of the service (String)
 - include an arbitrary Byte sequence to also send as meta-data
     client must serialize for me so we don't need to include a serialization lib or format
-      
-Set TTL of outgoing datagrams?
-
-
+  
 Listener
-- can get all beacons and then handle them itself
-  - minimal info is IP, and beacon name, meta-data is optional
   - port sent also?
   - a protocol field?
-- can request beacons matching any of a set of String names and only get notified when is EQUALS, but gets full beacon found with the name
-  - timestamp of when the beacon was sent / received?
-- to parse any meta-data it must know about the service and know how to parse
-the format of it's meta-data
-  
-Blocking call to wait for a matching beacon, with an optional timeout
+- to parse any meta-data it must know about the service and know how to parse the format of it's meta-data
 
 Call to wait for a beacon and then run a supplied closure when it is found?
 
-Set TTL for incoming datagrams and if not read in that time then discard them?
-
-
-- want to avoid receiving own beacon? Could be from another thread in the same process and hence wanted?
-- to support threads we would need some GUID? not just IP?
-
-- additional: can supply an optional regex to match the beacon name  
+- supply an optional regex to match the beacon name  
   https://crates.io/crates/regex
   to filter responses.
 Make that feature and the crate inclusion behind a feature to keep the 
