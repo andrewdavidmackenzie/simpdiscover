@@ -1,10 +1,12 @@
 # Simpdiscovery
 
-Simpdiscovery is a simple rust crate to facilitate discovery of services on other machines (or other threads or
-processes on the same machine) in the Local Area network (LAN) using UDP Broadcast datagrams or "beacons".
+Simpdiscovery is a simple rust crate to facilitate discovery of services within the Local Area network (LAN) 
+using UDP Broadcast datagrams or "beacons".
+
+The 'announcer' of a service could be a process on another machines, or another threads or process on the same machine.
 
 # Goals
-* LAN wide detection of specific services by name and what IP they are at
+* LAN wide detection of named services and what IP they are at
 * Simple to understand and use
 * Small, few dependencies on the library and small memory and cpu footprint
 * Simple beacon format that is easy to use and that doesn't introduce specific file format support into the library
