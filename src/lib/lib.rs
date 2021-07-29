@@ -1,8 +1,8 @@
 #![deny(missing_docs)]
 #![warn(clippy::unwrap_used)]
 
-//! This is the `simpdiscoverylib` create for simple UDP databagram based discovery of services
-//! on a LAN
+//! This is the library part of the `simpdiscovery` crate for simple UDP datagram-based discovery
+//! of services on a Local Area Network
 
 use std::net::UdpSocket;
 use std::time::Duration;
@@ -20,7 +20,7 @@ pub struct BeaconSender {
 }
 
 impl BeaconSender {
-    /// Create a new `Beacon` setup to send beacons on the specified `port`
+    /// Create a new `BeaconSender` setup to send `Beacon`s on the specified `port`
     pub fn new(port: usize) -> std::io::Result<Self> {
         let bind_address = "0.0.0.0:0";
         let socket:UdpSocket = UdpSocket::bind(bind_address)?;
@@ -36,7 +36,7 @@ impl BeaconSender {
         })
     }
 
-    /// Enter an infinite loop sending beacons periodically
+    /// Enter an infinite loop sending `Beacon`s periodically
     pub fn send_loop(&self) -> std::io::Result<()> {
         loop {
             self.send_one_beacon()?;
@@ -44,7 +44,7 @@ impl BeaconSender {
         }
     }
 
-    /// Send a single beacon out
+    /// Send a single `Beacon` out
     pub fn send_one_beacon(&self) -> std::io::Result<usize> {
         info!("Sending Beacon to: '{}'", self.broadcast_address);
         self.socket.send_to(self.message, &self.broadcast_address)
@@ -76,10 +76,9 @@ impl BeaconListener {
         })
     }
 
-    /// Wait for a beacon on the port specified in `BeaconListener::new()`
+    /// Wait for a `Beacon` on the port specified in `BeaconListener::new()`
     pub fn wait(&self) -> std::io::Result<Beacon> {
-        // Receives a single datagram message on the socket.
-        let mut buffer = [0; 5];
+        let mut buffer = [0; 5]; // TODO
 
         info!("Waiting for beacon");
         let (_number_of_bytes, source_address) = self.socket.recv_from(&mut buffer)?;
