@@ -13,7 +13,10 @@ fn main() -> std::io::Result<()> {
 
     if let Ok(listener) = BeaconListener::new(34254, filter) {
         let beacon = listener.wait(Some(Duration::from_secs(5)))?;
-        println!("Beacon with message '{}' received from IP: {}", beacon.message, beacon.source_ip);
+        println!("Beacon with message '{}' received from IP: {}, port: {}",
+                 beacon.message,
+                 beacon.source_ip,
+                 beacon.source_port);
     }
 
     Ok(())

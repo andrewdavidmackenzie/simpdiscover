@@ -57,7 +57,7 @@ pub struct BeaconSender {
 /// }
 impl BeaconSender {
     /// Create a new `BeaconSender` setup to send `Beacon`s on the specified `port`
-    pub fn new(port: usize, service_name: &str) -> std::io::Result<Self> {
+    pub fn new(port: u16, service_name: &str) -> std::io::Result<Self> {
         // Setting the port to non-zero (or at least the same port used in listener) causes
         // this to fail. I am not sure of the correct value to use. Docs on UDP says '0' is
         // permitted, if you do not expect a response from the UDP Datagram sent.
@@ -94,6 +94,8 @@ impl BeaconSender {
 pub struct Beacon {
     /// The IP address and port the beacon was sent from
     pub source_ip: String,
+    /// The port the beacon came from
+    pub source_port: u16,
     /// The message included in the beacon
     pub message: String
 }
@@ -106,7 +108,7 @@ pub struct BeaconListener {
 
 impl BeaconListener {
     /// Create a new `BeaconListener` on the specified port
-    pub fn new(port: usize, filter: Option<String>) -> std::io::Result<Self> {
+    pub fn new(port: u16, filter: Option<String>) -> std::io::Result<Self> {
         let address = format!("{}:{}", "0.0.0.0", port);
         let socket = UdpSocket::bind(&address)?;
         info!("Socket bound to: {}", address);
@@ -143,19 +145,21 @@ impl BeaconListener {
                 .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other,
                                                  e.to_string())
                 )?;
-            info!("Message '{}' received from Address: '{}'", message, source_address);
+            info!("Message '{}' received from IP: '{}' on port: '{}'", message, source_address.ip(), source_address.port());
 
             match &self.filter {
                 Some(match_string) => {
                     if &message == match_string {
                         return Ok(Beacon {
-                            source_ip: source_address.to_string(),
+                            source_ip: source_address.ip().to_string(),
+                            source_port: source_address.port(),
                             message
                         });
                     }
                 },
                 None => return Ok(Beacon {
-                    source_ip: source_address.to_string(),
+                    source_ip: source_address.ip().to_string(),
+                    source_port: source_address.port(),
                     message
                 })
             }

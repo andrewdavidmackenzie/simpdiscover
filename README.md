@@ -43,20 +43,17 @@ crate with cargo.
 It takes an optional command line parameter to specify the String for the beacon message to wait for before exiting:
 `cargo run --bin listen -- Hello`
 
-# Implementation Notes
-Simplest solution
+# Notes on things to add in the future
 Server
 - sending on background thread
   (look at implementing via async and not need to have a thread per beacon, just like a timer?)
-  - start sending other different ones
+  - start sending multiple beacons in parallel
 - stop sending a specific beacon
-- able to send multiple beacons
 - stop all beacons with one call?
 - include an arbitrary Byte sequence to also send as meta-data
-    client must serialize for me so we don't need to include a serialization lib or format
+    client must serialize so we don't need to include a serialization lib or format
   
 Listener
-  - port sent also?
   - a protocol field?
 - to parse any meta-data it must know about the service and know how to parse the format of it's meta-data
 
