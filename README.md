@@ -21,14 +21,12 @@ processes on the same machine) in the Local Area network (LAN) using UDP Broadca
     * send just one beacon
 * Simple BeaconListener struct that can be setup to receive beacons:
   * with a method that blocks sender and waits until a message is received
-    * with an optional timeout value to wait for or None to wait indefinately
+    * with an optional timeout value to wait for or None to wait indefinitely
 * Simple 'announce' and 'listen' binaries that use the library as examples
 * A some Doc tests to keep the API docs correct
 * Github Action to build then clippy check then test all
 
 # Next
-    * set wait timeout
-    * add more doc comments
     * Filter for beacons received by name
 
 # Implementation Notes
