@@ -1,6 +1,6 @@
-# Simpdiscovery
+# Simpdiscover
 
-Simpdiscovery is a simple rust crate to facilitate discovery of services within the Local Area network (LAN) 
+Simpdiscover is a simple rust crate to facilitate discovery of services within the Local Area network (LAN) 
 using UDP Broadcast datagrams or "beacons".
 
 The 'announcer' of a service could be a process on another machines, or another threads or process on the same machine.
@@ -51,3 +51,14 @@ Some are just questions about things I don't understand and would love experts o
 Please comment or start any you are interested in being implemented.
 
 PRs are obviously welcome, if accompanied by some doc comments, doc tests or tests.
+
+# Developers
+Clone/Fork the repo and download then run:
+`cargo build`
+`cargo test`
+`cargo clippy -- -D warnings`
+
+* Add changed, add doc comments and/or doc tests and tests.
+* Create a PR
+* Github actions will run the same steps as above
+* I will review and merge
