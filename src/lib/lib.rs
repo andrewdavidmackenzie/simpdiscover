@@ -119,7 +119,10 @@ impl BeaconListener {
 
         info!("Waiting for beacon");
         let (number_of_bytes, source_address) = self.socket.recv_from(&mut buffer)?;
-        let message = String::from_utf8(buffer[..number_of_bytes].to_vec()).unwrap();
+        let message = String::from_utf8(buffer[..number_of_bytes].to_vec())
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other,
+                     e.to_string())
+            )?;
         info!("Message '{}' received from Address: '{}'", message, source_address);
 
         Ok(Beacon{
