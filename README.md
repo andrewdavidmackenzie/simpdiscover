@@ -13,8 +13,8 @@ processes on the same machine) in the Local Area network (LAN) using UDP Broadca
 * Discovery of services across LANs, WANs, the Web or in the cloud.
   
 # Implemented so far
-* Simple BeaconSender class that can be setup to send beacons on a specific port, with methods to
-send forever in a loop or to send just one beacon.
+* Simple BeaconSender class that can be setup to send beacons with a specific beacon content String on a specific port,
+  with methods to send forever in a loop or to send just one beacon.
 * Simple BeaconListener class that can be setup to receive beacons on a specific port with a wait method 
   that blocks sender and waits until a message is received.
 * Simple 'announce' and 'listen' binaries that use the library as examples
@@ -22,9 +22,10 @@ send forever in a loop or to send just one beacon.
 * Github Action to build then test all
 
 # Next
-* Allow the client to specify the message to send
-* Specify sending frequency
-* Filter for beacons received by name
+    * Specify sending frequency
+    * set wait timeout
+    * add more doc comments
+    * Filter for beacons received by name
 
 # Implementation Notes
 Simplest solution

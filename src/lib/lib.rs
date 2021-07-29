@@ -3,25 +3,59 @@
 
 //! This is the library part of the `simpdiscovery` crate for simple UDP datagram-based discovery
 //! of services on a Local Area Network
+//!
+/// # Example Usage in a combined BeaconSender and BeaconListener
+/// ```
+/// use simpdiscoverylib::{BeaconSender, BeaconListener};
+///
+/// let port = 34254;
+/// if let Ok(beacon) = BeaconSender::new(port, "Hello") {
+///     std::thread::spawn(move || {
+///         let _ = beacon.send_loop();
+///     });
+/// }
+///
+/// let listener = BeaconListener::new(34254).expect("Could not create listener");
+/// let beacon = listener.wait().expect("Failed to receive beacon");
+/// assert_eq!(beacon.message, "Hello");
+/// ```
 
 use std::net::UdpSocket;
 use std::time::Duration;
 use log::info;
 
-
 //const BROADCAST_ADDRESS : &str = "192.168.2.255";
 const BROADCAST_ADDRESS : &str = "255.255.255.255";
+const MAX_INCOMING_BEACON_SIZE : usize = 1024;
 
 /// `BeaconSender` is used to send UDP Datagram beacons to the Broadcast IP address on the LAN
 pub struct BeaconSender {
     socket: UdpSocket,
     broadcast_address: String,
-    message: &'static [u8],
+    message: Vec<u8>,
 }
 
+/// # Example of a BeaconSender
+/// This example will just exit here and the thread above will die with the whole process
+/// in your example either don't start a background thread and just loop forever sending
+/// or have some other way to keep the process (and hence the sending thread) alive so
+/// beacons are actually sent.
+///
+/// ```
+/// use simpdiscoverylib::{BeaconSender, BeaconListener};
+///
+/// let port = 34254;
+/// if let Ok(beacon) = BeaconSender::new(port, "Hello") {
+///     std::thread::spawn(move || {
+///         let _ = beacon.send_loop();
+///     });
+/// }
 impl BeaconSender {
     /// Create a new `BeaconSender` setup to send `Beacon`s on the specified `port`
-    pub fn new(port: usize) -> std::io::Result<Self> {
+    pub fn new(port: usize, service_name: &str) -> std::io::Result<Self> {
+        // Setting the port to non-zero (or at least the same port used in listener) causes
+        // this to fail. I am not sure of the correct value to use. Docs on UDP says '0' is
+        // permitted, if you do not expect a response from the UDP Datagram sent.
         let bind_address = "0.0.0.0:0";
         let socket:UdpSocket = UdpSocket::bind(bind_address)?;
         info!("Socket bound to: {}", bind_address);
@@ -32,7 +66,7 @@ impl BeaconSender {
         Ok(Self {
             socket,
             broadcast_address: format!("{}:{}", BROADCAST_ADDRESS, port),
-            message : "Hello".as_bytes()
+            message : service_name.as_bytes().to_vec()
         })
     }
 
@@ -47,7 +81,7 @@ impl BeaconSender {
     /// Send a single `Beacon` out
     pub fn send_one_beacon(&self) -> std::io::Result<usize> {
         info!("Sending Beacon to: '{}'", self.broadcast_address);
-        self.socket.send_to(self.message, &self.broadcast_address)
+        self.socket.send_to(&self.message, &self.broadcast_address)
     }
 }
 
@@ -78,11 +112,11 @@ impl BeaconListener {
 
     /// Wait for a `Beacon` on the port specified in `BeaconListener::new()`
     pub fn wait(&self) -> std::io::Result<Beacon> {
-        let mut buffer = [0; 5]; // TODO
+        let mut buffer = [0; MAX_INCOMING_BEACON_SIZE];
 
         info!("Waiting for beacon");
-        let (_number_of_bytes, source_address) = self.socket.recv_from(&mut buffer)?;
-        let message = String::from_utf8(Vec::from(buffer)).unwrap();
+        let (number_of_bytes, source_address) = self.socket.recv_from(&mut buffer)?;
+        let message = String::from_utf8(buffer[..number_of_bytes].to_vec()).unwrap();
         info!("Message '{}' received from Address: '{}'", message, source_address);
 
         Ok(Beacon{
