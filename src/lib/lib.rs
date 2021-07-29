@@ -9,7 +9,8 @@
 /// use simpdiscoverylib::{BeaconSender, BeaconListener};
 ///
 /// let port = 34254;
-/// if let Ok(beacon) = BeaconSender::new(port, "Hello") {
+/// let my_service_name = "net.mackenzie-serres.simpdiscovery";
+/// if let Ok(beacon) = BeaconSender::new(port, my_service_name) {
 ///     std::thread::spawn(move || {
 ///         let _ = beacon.send_loop();
 ///     });
@@ -17,7 +18,7 @@
 ///
 /// let listener = BeaconListener::new(34254).expect("Could not create listener");
 /// let beacon = listener.wait().expect("Failed to receive beacon");
-/// assert_eq!(beacon.message, "Hello");
+/// assert_eq!(beacon.message, my_service_name, "Service name received in beacon doesn't match the one expected");
 /// ```
 
 use std::net::UdpSocket;
