@@ -53,14 +53,12 @@ Please comment or start any you are interested in being implemented.
 PRs are obviously welcome, if accompanied by some doc comments, doc tests or tests.
 
 # Developers
-Clone/Fork the repo and download then run:
-`cargo build`
-
-`cargo test`
-
-`cargo clippy -- -D warnings`
-
-* Add changed, add doc comments and/or doc tests and tests.
+* Clone/Fork the repo and download:
+* `cd` into the directory 
+* Add changes, add doc comments and/or doc tests and tests.
+* `cargo build`
+* `cargo test`
+* `cargo clippy -- -D warnings`
 * Create a PR
 * Github actions will run the same steps as above
 * I will review and merge
