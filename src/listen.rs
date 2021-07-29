@@ -13,8 +13,20 @@ fn main() -> std::io::Result<()> {
         _ => Some(args[1].clone())
     };
 
+    let timeout = match args.len() {
+        0..=2 => None,
+        _ => {
+            Some(Duration::from_secs(args[2].parse::<u64>().unwrap()))
+        }
+    };
+
+    println!("Waiting for a beacon");
+    if let Some(time) = timeout {
+        println!("Timeout set to {} seconds", time.as_secs_f64());
+    }
+
     if let Ok(listener) = BeaconListener::new(BEACON_PORT, filter) {
-        let beacon = listener.wait(Some(Duration::from_secs(5)))?;
+        let beacon = listener.wait(timeout)?;
         println!("Beacon with message '{}' received from IP: {}, port: {}",
                  beacon.message,
                  beacon.source_ip,
