@@ -43,24 +43,11 @@ crate with cargo.
 It takes an optional command line parameter to specify the String for the beacon message to wait for before exiting:
 `cargo run --bin listen -- Hello`
 
-# Notes on things to add in the future
-Server
-- sending on background thread
-  (look at implementing via async and not need to have a thread per beacon, just like a timer?)
-  - start sending multiple beacons in parallel
-- stop sending a specific beacon
-- stop all beacons with one call?
-- include an arbitrary Byte sequence to also send as meta-data
-    client must serialize so we don't need to include a serialization lib or format
-  
-Listener
-  - a protocol field?
-- to parse any meta-data it must know about the service and know how to parse the format of it's meta-data
+# Future work
+I have taken most of my notes on future work and converted them into [GitHub issues](https://github.com/andrewdavidmackenzie/simpdiscover/issues).
 
-Call to wait for a beacon and then run a supplied closure when it is found?
+Some are just questions about things I don't understand and would love experts on UDP and rust to explain them to me.
 
-- supply an optional regex to match the beacon name  
-  https://crates.io/crates/regex
-  to filter responses.
-Make that feature and the crate inclusion behind a feature to keep the 
-project as small as possible.
+Please comment or start any you are interested in being implemented.
+
+PRs are obviously welcome, if accompanied by some doc comments, doc tests or tests.
