@@ -1,6 +1,6 @@
 [package]
 name = "simpdiscover"
-version = "0.1.4"
+version = "0.1.5"
 authors = ["Andrew Mackenzie <andrew@mackenzie-serres.net>"]
 description = "A simple library for UDP based service discovery"
 license = "MIT"
