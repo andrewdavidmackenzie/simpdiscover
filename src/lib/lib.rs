@@ -18,7 +18,7 @@
 /// }
 ///
 /// let listener = BeaconListener::new(port).expect("Could not create listener");
-/// let beacon = listener.wait().expect("Failed to receive beacon");
+/// let beacon = listener.wait(None).expect("Failed to receive beacon");
 /// assert_eq!(beacon.message, my_service_name, "Service name received in beacon doesn't match the one expected");
 /// ```
 
@@ -116,8 +116,23 @@ impl BeaconListener {
     }
 
     /// Wait for a `Beacon` on the port specified in `BeaconListener::new()`
-    pub fn wait(&self) -> std::io::Result<Beacon> {
+    ///
+    /// # Example with timeout
+    ///
+    /// ```
+    /// use simpdiscoverylib::BeaconListener;
+    /// use std::time::Duration;
+    ///
+    /// let port = 34254;
+    /// let listener = BeaconListener::new(port).expect("Could not create listener");
+    /// let beacon = listener.wait(Some(Duration::from_millis(1)));
+    /// assert!(beacon.is_err());
+    /// ```
+    pub fn wait(&self, timeout: Option<Duration>) -> std::io::Result<Beacon> {
         let mut buffer = [0; MAX_INCOMING_BEACON_SIZE];
+
+        self.socket.set_read_timeout(timeout)?;
+        info!("Read timeout set to: {:?}", timeout);
 
         info!("Waiting for beacon");
         let (number_of_bytes, source_address) = self.socket.recv_from(&mut buffer)?;
