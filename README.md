@@ -55,7 +55,9 @@ PRs are obviously welcome, if accompanied by some doc comments, doc tests or tes
 # Developers
 Clone/Fork the repo and download then run:
 `cargo build`
+
 `cargo test`
+
 `cargo clippy -- -D warnings`
 
 * Add changed, add doc comments and/or doc tests and tests.
