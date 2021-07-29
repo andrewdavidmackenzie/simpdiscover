@@ -17,7 +17,7 @@
 ///     });
 /// }
 ///
-/// let listener = BeaconListener::new(port).expect("Could not create listener");
+/// let listener = BeaconListener::new(port, None).expect("Could not create listener");
 /// let beacon = listener.wait(None).expect("Failed to receive beacon");
 /// assert_eq!(beacon.message, my_service_name, "Service name received in beacon doesn't match the one expected");
 /// ```
@@ -101,17 +101,19 @@ pub struct Beacon {
 /// `BeaconListener` listens for new `Beacons` on the specified port
 pub struct BeaconListener {
     socket: UdpSocket,
+    filter: Option<String>
 }
 
 impl BeaconListener {
     /// Create a new `BeaconListener` on the specified port
-    pub fn new(port: usize) -> std::io::Result<Self> {
+    pub fn new(port: usize, filter: Option<String>) -> std::io::Result<Self> {
         let address = format!("{}:{}", "0.0.0.0", port);
         let socket = UdpSocket::bind(&address)?;
         info!("Socket bound to: {}", address);
 
         Ok(Self {
-            socket
+            socket,
+            filter
         })
     }
 
@@ -124,7 +126,7 @@ impl BeaconListener {
     /// use std::time::Duration;
     ///
     /// let port = 34254;
-    /// let listener = BeaconListener::new(port).expect("Could not create listener");
+    /// let listener = BeaconListener::new(port, None).expect("Could not create listener");
     /// let beacon = listener.wait(Some(Duration::from_millis(1)));
     /// assert!(beacon.is_err());
     /// ```
@@ -135,16 +137,28 @@ impl BeaconListener {
         info!("Read timeout set to: {:?}", timeout);
 
         info!("Waiting for beacon");
-        let (number_of_bytes, source_address) = self.socket.recv_from(&mut buffer)?;
-        let message = String::from_utf8(buffer[..number_of_bytes].to_vec())
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other,
-                     e.to_string())
-            )?;
-        info!("Message '{}' received from Address: '{}'", message, source_address);
+        loop {
+            let (number_of_bytes, source_address) = self.socket.recv_from(&mut buffer)?;
+            let message = String::from_utf8(buffer[..number_of_bytes].to_vec())
+                .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other,
+                                                 e.to_string())
+                )?;
+            info!("Message '{}' received from Address: '{}'", message, source_address);
 
-        Ok(Beacon{
-            source_ip: source_address.to_string(),
-            message
-        })
+            match &self.filter {
+                Some(match_string) => {
+                    if &message == match_string {
+                        return Ok(Beacon {
+                            source_ip: source_address.to_string(),
+                            message
+                        });
+                    }
+                },
+                None => return Ok(Beacon {
+                    source_ip: source_address.to_string(),
+                    message
+                })
+            }
+        }
     }
 }
