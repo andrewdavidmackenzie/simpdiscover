@@ -2,6 +2,8 @@ use simpdiscoverylib::BeaconSender;
 use simplog::simplog::SimpleLogger;
 use std::time::Duration;
 
+const BEACON_PORT : u16 = 9001;
+
 fn main() -> std::io::Result<()> {
     SimpleLogger::init_prefix(Some("info"), false);
 
@@ -15,7 +17,7 @@ fn main() -> std::io::Result<()> {
 
     println!("Beacon message set to: '{}'", message);
 
-    if let Ok(beacon) = BeaconSender::new(34254, message) {
+    if let Ok(beacon) = BeaconSender::new(BEACON_PORT, message) {
         beacon.send_loop(Duration::from_secs(1))?;
     }
 
