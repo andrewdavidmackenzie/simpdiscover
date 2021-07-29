@@ -7,16 +7,17 @@
 /// # Example Usage in a combined BeaconSender and BeaconListener
 /// ```
 /// use simpdiscoverylib::{BeaconSender, BeaconListener};
+/// use std::time::Duration;
 ///
 /// let port = 34254;
 /// let my_service_name = "net.mackenzie-serres.simpdiscovery";
 /// if let Ok(beacon) = BeaconSender::new(port, my_service_name) {
 ///     std::thread::spawn(move || {
-///         let _ = beacon.send_loop();
+///         let _ = beacon.send_loop(Duration::from_secs(1));
 ///     });
 /// }
 ///
-/// let listener = BeaconListener::new(34254).expect("Could not create listener");
+/// let listener = BeaconListener::new(port).expect("Could not create listener");
 /// let beacon = listener.wait().expect("Failed to receive beacon");
 /// assert_eq!(beacon.message, my_service_name, "Service name received in beacon doesn't match the one expected");
 /// ```
@@ -46,11 +47,12 @@ pub struct BeaconSender {
 ///
 /// ```
 /// use simpdiscoverylib::{BeaconSender, BeaconListener};
+/// use std::time::Duration;
 ///
 /// let port = 34254;
 /// if let Ok(beacon) = BeaconSender::new(port, "Hello") {
 ///     std::thread::spawn(move || {
-///         let _ = beacon.send_loop();
+///         let _ = beacon.send_loop(Duration::from_secs(1));
 ///     });
 /// }
 impl BeaconSender {
@@ -74,10 +76,10 @@ impl BeaconSender {
     }
 
     /// Enter an infinite loop sending `Beacon`s periodically
-    pub fn send_loop(&self) -> std::io::Result<()> {
+    pub fn send_loop(&self, period: Duration) -> std::io::Result<()> {
         loop {
             self.send_one_beacon()?;
-            std::thread::sleep(Duration::from_secs(1));
+            std::thread::sleep(period);
         }
     }
 

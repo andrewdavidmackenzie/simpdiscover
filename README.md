@@ -13,16 +13,19 @@ processes on the same machine) in the Local Area network (LAN) using UDP Broadca
 * Discovery of services across LANs, WANs, the Web or in the cloud.
   
 # Implemented so far
-* Simple BeaconSender class that can be setup to send beacons with a specific beacon content String on a specific port,
-  with methods to send forever in a loop or to send just one beacon.
-* Simple BeaconListener class that can be setup to receive beacons on a specific port with a wait method 
-  that blocks sender and waits until a message is received.
+* BeaconSender struct that can be setup to send beacons:
+  * with a specific beacon content String
+  * on a specific port
+  * with methods to:
+    * send forever in a loop at a given time period
+    * send just one beacon
+* Simple BeaconListener struct that can be setup to receive beacons:
+  * with a method that blocks sender and waits until a message is received
 * Simple 'announce' and 'listen' binaries that use the library as examples
-* Test to ensure sending and reception works
-* Github Action to build then test all
+* A some Doc tests to keep the API docs correct
+* Github Action to build then clippy check then test all
 
 # Next
-    * Specify sending frequency
     * set wait timeout
     * add more doc comments
     * Filter for beacons received by name
@@ -31,7 +34,7 @@ processes on the same machine) in the Local Area network (LAN) using UDP Broadca
 Simplest solution
 Server
 - sending on background thread
-  (maybe implement via async and not need to have a thread per beacon, just like a timer?)
+  (look at implementing via async and not need to have a thread per beacon, just like a timer?)
   - start sending other different ones
 - stop sending a specific beacon
 - able to send multiple beacons
