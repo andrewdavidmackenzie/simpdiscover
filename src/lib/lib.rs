@@ -104,7 +104,7 @@ pub struct Beacon {
 
 impl std::fmt::Display for Beacon {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let message = String::from_utf8(self.message.clone()).unwrap_or_else(|| "Invalid UTF-8 String".into());
+        let message = String::from_utf8(self.message.clone()).unwrap_or_else(|_| "Invalid UTF-8 String".into());
         write!(f, "Message: {}, Source IP: {}, Source Port: {}", message, self.source_ip, self.source_port)
     }
 }
