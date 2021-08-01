@@ -2,7 +2,8 @@ use simpdiscoverylib::BeaconSender;
 use simplog::simplog::SimpleLogger;
 use std::time::Duration;
 
-const BEACON_PORT : u16 = 9001;
+const BEACON_TEST_SERVICE_PORT : u16 = 9999;
+const BEACON_TEST_SERVICE_NAME :&str = "BeaconTestService";
 
 fn main() -> std::io::Result<()> {
     SimpleLogger::init_prefix(Some("info"), false);
@@ -10,14 +11,14 @@ fn main() -> std::io::Result<()> {
     println!("\nHit Control-C to kill the process and stop beacon sending\n");
 
     let args : Vec<String> = std::env::args().collect();
-    let message = match args.len() {
-        0..=1 => "Hello",
+    let service_name = match args.len() {
+        0..=1 => BEACON_TEST_SERVICE_NAME,
         _ => &args[1]
     };
 
-    println!("Beacon message set to: '{}'", message);
+    println!("Beacon message set to: '{}'", service_name);
 
-    if let Ok(beacon) = BeaconSender::new(BEACON_PORT, message) {
+    if let Ok(beacon) = BeaconSender::new(BEACON_TEST_SERVICE_PORT, service_name.as_bytes()) {
         beacon.send_loop(Duration::from_secs(1))?;
     }
 
