@@ -106,7 +106,7 @@ impl BeaconSender {
 
     /// Send a single `Beacon` out
     pub fn send_one_beacon(&self) -> std::io::Result<usize> {
-        println!("Sending Beacon to: '{}'", BROADCAST_ADDRESS);
+        trace!("Sending Beacon to: '{}'", BROADCAST_ADDRESS);
         self.socket.send_to(&self.beacon_payload, BROADCAST_ADDRESS)
     }
 }
