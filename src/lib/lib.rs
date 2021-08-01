@@ -9,8 +9,8 @@
 /// use simpdiscoverylib::{BeaconSender, BeaconListener};
 /// use std::time::Duration;
 ///
-/// let port = 34254;
-/// let my_service_name = "net.mackenzie-serres.simpdiscovery";
+/// let port = 9001;
+/// let my_service_name = "net.mackenzie-serres.simpdiscovery".as_bytes();
 /// if let Ok(beacon) = BeaconSender::new(port, my_service_name) {
 ///     std::thread::spawn(move || {
 ///         let _ = beacon.send_loop(Duration::from_secs(1));
@@ -24,20 +24,16 @@
 
 use std::net::UdpSocket;
 use std::time::Duration;
-use log::info;
+use log::{info, trace};
+use std::fmt::Formatter;
 
 //const BROADCAST_ADDRESS : &str = "192.168.2.255";
 const BROADCAST_ADDRESS : &str = "255.255.255.255";
 const MAX_INCOMING_BEACON_SIZE : usize = 1024;
 
 /// `BeaconSender` is used to send UDP Datagram beacons to the Broadcast IP address on the LAN
-pub struct BeaconSender {
-    socket: UdpSocket,
-    broadcast_address: String,
-    message: Vec<u8>,
-}
-
-/// # Example of a BeaconSender
+///
+/// # Example of using `BeaconSender`
 /// This example will just exit at the end and the thread above will die along with the process.
 ///
 /// In your own code, either:
@@ -49,15 +45,21 @@ pub struct BeaconSender {
 /// use simpdiscoverylib::{BeaconSender, BeaconListener};
 /// use std::time::Duration;
 ///
-/// let port = 34254;
-/// if let Ok(beacon) = BeaconSender::new(port, "Hello") {
+/// let port = 9001;
+/// if let Ok(beacon) = BeaconSender::new(port, "Hello".as_bytes()) {
 ///     std::thread::spawn(move || {
 ///         let _ = beacon.send_loop(Duration::from_secs(1));
 ///     });
 /// }
+pub struct BeaconSender {
+    socket: UdpSocket,
+    broadcast_address: String,
+    message: Vec<u8>,
+}
+
 impl BeaconSender {
     /// Create a new `BeaconSender` setup to send `Beacon`s on the specified `port`
-    pub fn new(port: u16, service_name: &str) -> std::io::Result<Self> {
+    pub fn new(port: u16, message: &[u8]) -> std::io::Result<Self> {
         // Setting the port to non-zero (or at least the same port used in listener) causes
         // this to fail. I am not sure of the correct value to use. Docs on UDP says '0' is
         // permitted, if you do not expect a response from the UDP Datagram sent.
@@ -71,7 +73,7 @@ impl BeaconSender {
         Ok(Self {
             socket,
             broadcast_address: format!("{}:{}", BROADCAST_ADDRESS, port),
-            message : service_name.as_bytes().to_vec()
+            message: message.to_vec()
         })
     }
 
@@ -85,7 +87,7 @@ impl BeaconSender {
 
     /// Send a single `Beacon` out
     pub fn send_one_beacon(&self) -> std::io::Result<usize> {
-        info!("Sending Beacon to: '{}'", self.broadcast_address);
+        println!("Sending Beacon to: '{}'", self.broadcast_address);
         self.socket.send_to(&self.message, &self.broadcast_address)
     }
 }
@@ -97,21 +99,42 @@ pub struct Beacon {
     /// The port the beacon came from
     pub source_port: u16,
     /// The message included in the beacon
-    pub message: String
+    pub message: Vec<u8>
+}
+
+impl std::fmt::Display for Beacon {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let message = String::from_utf8(self.message.clone()).unwrap_or("Invalid UTF-8 String".into());
+        write!(f, "Message: {}, Source IP: {}, Source Port: {}", message, self.source_ip, self.source_port)
+    }
 }
 
 /// `BeaconListener` listens for new `Beacons` on the specified port
+///
+/// # Example of using `BeaconSender` with timeout
+/// ```
+/// use simpdiscoverylib::BeaconListener;
+/// use std::time::Duration;
+///
+/// let port = 9001;
+/// let listener = BeaconListener::new(port, None).expect("Could not create listener");
+///
+/// // Avoid blocking tests completely with no timeout, and set a very short one
+/// let beacon = listener.wait(Some(Duration::from_millis(1)));
+/// assert!(beacon.is_err());
+/// ```
 pub struct BeaconListener {
     socket: UdpSocket,
-    filter: Option<String>
+    filter: Option<Vec<u8>>
 }
 
 impl BeaconListener {
-    /// Create a new `BeaconListener` on the specified port
-    pub fn new(port: u16, filter: Option<String>) -> std::io::Result<Self> {
+    /// Create a new `BeaconListener` on `port` with an option `filter` to be applied to incoming
+    /// beacons. This binds to address "0.0.0.0:port"
+    pub fn new(port: u16, filter: Option<Vec<u8>>) -> std::io::Result<Self> {
         let address = format!("{}:{}", "0.0.0.0", port);
         let socket = UdpSocket::bind(&address)?;
-        info!("Socket bound to: {}", address);
+        trace!("Socket bound to: {}", address);
 
         Ok(Self {
             socket,
@@ -120,49 +143,49 @@ impl BeaconListener {
     }
 
     /// Wait for a `Beacon` on the port specified in `BeaconListener::new()`
+    /// If `timeout` is None, then it will block forever waiting for a beacon matching the optional
+    /// filter (if supplied) in `BeaconListener::new()`. If no `filter` was supplied it will block
+    /// waiting for any beacon to be received.
     ///
-    /// # Example with timeout
-    ///
-    /// ```
-    /// use simpdiscoverylib::BeaconListener;
-    /// use std::time::Duration;
-    ///
-    /// let port = 34254;
-    /// let listener = BeaconListener::new(port, None).expect("Could not create listener");
-    /// let beacon = listener.wait(Some(Duration::from_millis(1)));
-    /// assert!(beacon.is_err());
-    /// ```
+    /// If `timeout` is `Some(Duration)` then it will block for that duration on the reception of
+    /// each beacon. If the beacon does not match a supplied `filter` then it will loop (blocking
+    /// for `duration` each time until a matching beacon is found.
     pub fn wait(&self, timeout: Option<Duration>) -> std::io::Result<Beacon> {
-        let mut buffer = [0; MAX_INCOMING_BEACON_SIZE];
-
         self.socket.set_read_timeout(timeout)?;
         info!("Read timeout set to: {:?}", timeout);
 
         info!("Waiting for beacon");
         loop {
-            let (number_of_bytes, source_address) = self.socket.recv_from(&mut buffer)?;
-            let message = String::from_utf8(buffer[..number_of_bytes].to_vec())
-                .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other,
-                                                 e.to_string())
-                )?;
-            info!("Message '{}' received from IP: '{}' on port: '{}'", message, source_address.ip(), source_address.port());
+            let beacon = self.receive_one_beacon()?;
 
             match &self.filter {
                 Some(match_string) => {
-                    if &message == match_string {
-                        return Ok(Beacon {
-                            source_ip: source_address.ip().to_string(),
-                            source_port: source_address.port(),
-                            message
-                        });
+                    if &beacon.message == match_string {
+                        trace!("Message matches filter: returning beacon");
+                        return Ok(beacon);
+                    } else {
+                        trace!("Message does not match filter: ignoring");
                     }
                 },
-                None => return Ok(Beacon {
-                    source_ip: source_address.ip().to_string(),
-                    source_port: source_address.port(),
-                    message
-                })
+                None => return Ok(beacon)
             }
         }
+    }
+
+    /*
+        Receive one beacon
+     */
+    fn receive_one_beacon(&self) -> std::io::Result<Beacon> {
+        let mut buffer = [0; MAX_INCOMING_BEACON_SIZE];
+
+        let (number_of_bytes, source_address) = self.socket.recv_from(&mut buffer)?;
+        let message = buffer[..number_of_bytes].to_vec();
+        trace!("Message received from IP: '{}' on port: '{}'", source_address.ip(), source_address.port());
+
+        Ok(Beacon {
+            source_ip: source_address.ip().to_string(),
+            source_port: source_address.port(),
+            message
+        })
     }
 }

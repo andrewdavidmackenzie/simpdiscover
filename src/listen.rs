@@ -25,12 +25,8 @@ fn main() -> std::io::Result<()> {
         println!("Timeout set to {} seconds", time.as_secs_f64());
     }
 
-    if let Ok(listener) = BeaconListener::new(BEACON_PORT, filter) {
-        let beacon = listener.wait(timeout)?;
-        println!("Beacon with message '{}' received from IP: {}, port: {}",
-                 beacon.message,
-                 beacon.source_ip,
-                 beacon.source_port);
+    if let Ok(listener) = BeaconListener::new(BEACON_PORT, filter.map(|f| f.into_bytes())) {
+        println!("Beacon {}", listener.wait(timeout)?);
     }
 
     Ok(())
