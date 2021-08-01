@@ -62,13 +62,13 @@ pub struct BeaconSender {
 fn u16_to_array_of_u8(x:u16) -> [u8;2] {
     let b1 : u8 = ((x >> 8) & 0xff) as u8;
     let b2 : u8 = (x & 0xff) as u8;
-    return [b1, b2]
+    [b1, b2]
 }
 
 fn array_of_u8_to_u16(array: &[u8]) -> u16 {
     let upper : u16 = (array[0] as u16) << 8;
     let lower : u16 = array[1] as u16;
-    return upper + lower
+    upper + lower
 }
 
 impl BeaconSender {
@@ -88,7 +88,7 @@ impl BeaconSender {
         // Create payload with magic number, service_port number and service_name
         let mut beacon_payload: Vec<u8> = u16_to_array_of_u8(MAGIC_NUMBER).to_vec();
         beacon_payload.append(&mut u16_to_array_of_u8(service_port).to_vec());
-        beacon_payload.append(&mut service_name.to_vec().clone());
+        beacon_payload.append(&mut service_name.to_vec());
 
         Ok(Self {
             socket,
