@@ -1,5 +1,5 @@
 use simpdiscoverylib::BeaconSender;
-use simplog::simplog::SimpleLogger;
+use simplog::SimpleLogger;
 use std::time::Duration;
 
 const BEACON_TEST_SERVICE_PORT : u16 = 9999;

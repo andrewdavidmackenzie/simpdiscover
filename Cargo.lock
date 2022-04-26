@@ -53,9 +53,9 @@ dependencies = [
 
 [[package]]
 name = "simplog"
-version = "1.4.0"
+version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b690064644f6195d2707e0e7b2387d1a3b7479dba61c8e0df3f94fc5a419846"
+checksum = "fe835ff2504c22513eacaf5e448be9740aa7a703228235476730c546310a895a"
 dependencies = [
  "atty",
  "log",

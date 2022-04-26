@@ -1,5 +1,5 @@
 use simpdiscoverylib::BeaconListener;
-use simplog::simplog::SimpleLogger;
+use simplog::SimpleLogger;
 use std::time::Duration;
 
 const BEACON_TEST_SERVICE_NAME :&str = "BeaconTestService";
