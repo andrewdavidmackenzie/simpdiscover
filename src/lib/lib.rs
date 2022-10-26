@@ -11,13 +11,13 @@
 //!
 //! let port = 9001;
 //! let my_service_name = "_my_service._tcp.local".as_bytes();
-//! if let Ok(beacon) = BeaconSender::new(port, my_service_name) {
+//! if let Ok(beacon) = BeaconSender::new(port, my_service_name, 9002) {
 //!     std::thread::spawn(move || {
 //!         let _ = beacon.send_loop(Duration::from_secs(1));
 //!     });
 //! }
 //!
-//! let listener = BeaconListener::new(my_service_name).expect("Could not create listener");
+//! let listener = BeaconListener::new(my_service_name, 9002).expect("Could not create listener");
 //! let beacon = listener.wait(None).expect("Failed to receive beacon");
 //! assert_eq!(beacon.service_name, my_service_name, "Service name received in beacon doesn't match the one expected");
 //! assert_eq!(beacon.service_port, port);
@@ -28,10 +28,8 @@ use std::time::Duration;
 use log::{info, trace};
 use std::fmt::Formatter;
 
-//const BROADCAST_ADDRESS : &str = "192.168.2.255";
-// We have chosen 9001 as the BEACON_PORT for now
-const BROADCAST_ADDRESS : &str = "255.255.255.255:9001";
-const LISTENING_ADDRESS : &str = "0.0.0.0:9001";
+const BROADCAST_ADDRESS : &str = "255.255.255.255";
+const LISTENING_ADDRESS : &str = "0.0.0.0";
 const MAX_INCOMING_BEACON_SIZE : usize = 1024;
 const MAGIC_NUMBER: u16 = 0xbeef;
 
@@ -49,7 +47,7 @@ const MAGIC_NUMBER: u16 = 0xbeef;
 /// use simpdiscoverylib::{BeaconSender, BeaconListener};
 /// use std::time::Duration;
 ///
-/// if let Ok(beacon) = BeaconSender::new(9001, "Hello".as_bytes()) {
+/// if let Ok(beacon) = BeaconSender::new(9001, "Hello".as_bytes(), 9002) {
 ///     std::thread::spawn(move || {
 ///         let _ = beacon.send_loop(Duration::from_secs(1));
 ///     });
@@ -57,6 +55,7 @@ const MAGIC_NUMBER: u16 = 0xbeef;
 pub struct BeaconSender {
     socket: UdpSocket,
     beacon_payload: Vec<u8>,
+    broadcast_address: String,
 }
 
 fn u16_to_array_of_u8(x:u16) -> [u8;2] {
@@ -74,7 +73,7 @@ fn array_of_u8_to_u16(array: &[u8]) -> u16 {
 impl BeaconSender {
     /// Create a new `BeaconSender` to send `Beacon`s for a service with name `service_name` that
     /// should be contacted on the port `service_port`
-    pub fn new(service_port: u16, service_name: &[u8]) -> std::io::Result<Self> {
+    pub fn new(service_port: u16, service_name: &[u8], broadcast_port: u16) -> std::io::Result<Self> {
         // Setting the port to non-zero (or at least the same port used in listener) causes
         // this to fail. I am not sure of the correct value to use. Docs on UDP says '0' is
         // permitted, if you do not expect a response from the UDP Datagram sent.
@@ -93,6 +92,7 @@ impl BeaconSender {
         Ok(Self {
             socket,
             beacon_payload,
+            broadcast_address: format!("{}:{}", BROADCAST_ADDRESS, broadcast_port)
         })
     }
 
@@ -106,8 +106,8 @@ impl BeaconSender {
 
     /// Send a single `Beacon` out
     pub fn send_one_beacon(&self) -> std::io::Result<usize> {
-        trace!("Sending Beacon to: '{}'", BROADCAST_ADDRESS);
-        self.socket.send_to(&self.beacon_payload, BROADCAST_ADDRESS)
+        trace!("Sending Beacon to: '{}'", self.broadcast_address);
+        self.socket.send_to(&self.beacon_payload, &self.broadcast_address)
     }
 }
 
@@ -136,7 +136,7 @@ impl std::fmt::Display for Beacon {
 /// use std::time::Duration;
 ///
 /// let port = 9001;
-/// let listener = BeaconListener::new("_my_service._tcp.local".as_bytes()).expect("Could not create listener");
+/// let listener = BeaconListener::new("_my_service._tcp.local".as_bytes(), 9002).expect("Could not create listener");
 ///
 /// // Avoid blocking tests completely with no timeout, and set a very short one
 /// let beacon = listener.wait(Some(Duration::from_millis(1)));
@@ -144,19 +144,20 @@ impl std::fmt::Display for Beacon {
 /// ```
 pub struct BeaconListener {
     socket: UdpSocket,
-    service_name: Vec<u8>
+    service_name: Vec<u8>,
 }
 
 impl BeaconListener {
     /// Create a new `BeaconListener` on `port` with an option `filter` to be applied to incoming
     /// beacons. This binds to address "0.0.0.0:port"
-    pub fn new(service_name: &[u8]) -> std::io::Result<Self> {
-        let socket = UdpSocket::bind(&LISTENING_ADDRESS)?;
-        trace!("Socket bound to: {}", LISTENING_ADDRESS);
+    pub fn new(service_name: &[u8], listening_port: u16) -> std::io::Result<Self> {
+        let listening_address = format!("{}:{}", LISTENING_ADDRESS, listening_port);
+        let socket = UdpSocket::bind(&listening_address)?;
+        trace!("Socket bound to: {}", listening_address);
 
         Ok(Self {
             socket,
-            service_name: service_name.to_vec()
+            service_name: service_name.to_vec(),
         })
     }
 

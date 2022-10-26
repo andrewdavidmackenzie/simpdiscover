@@ -1,6 +1,6 @@
 [package]
 name = "simpdiscover"
-version = "0.3.1"
+version = "0.4.0"
 authors = ["Andrew Mackenzie <andrew@mackenzie-serres.net>"]
 description = "A simple library for UDP based service discovery"
 license = "MIT"
@@ -24,5 +24,6 @@ path = "src/lib/lib.rs"
 
 [dependencies]
 log = "0.4.6"
+portpicker = "0.1.1"
 
 simplog = "~1.5" # Only used by smaple binaries provided, not a dependency of the library

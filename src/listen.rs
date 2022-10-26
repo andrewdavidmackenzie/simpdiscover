@@ -21,7 +21,7 @@ fn main() -> std::io::Result<()> {
     println!("Timeout set to {:?}", timeout);
 
     println!("Waiting for a beacon from service: '{}'", service_name);
-    let listener = BeaconListener::new(service_name.as_bytes())?;
+    let listener = BeaconListener::new(service_name.as_bytes(), 9002)?;
     println!("Beacon {}", listener.wait(timeout)?);
 
     Ok(())

@@ -18,7 +18,8 @@ fn main() -> std::io::Result<()> {
 
     println!("Beacon message set to: '{}'", service_name);
 
-    if let Ok(beacon) = BeaconSender::new(BEACON_TEST_SERVICE_PORT, service_name.as_bytes()) {
+    if let Ok(beacon) = BeaconSender::new(BEACON_TEST_SERVICE_PORT,
+                                          service_name.as_bytes(), 9002) {
         beacon.send_loop(Duration::from_secs(1))?;
     }
 
