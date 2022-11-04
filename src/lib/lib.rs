@@ -112,7 +112,8 @@ impl BeaconSender {
 
     /// Send a single `Beacon` out
     pub fn send_one_beacon(&self) -> std::io::Result<usize> {
-        trace!("Sending Beacon to: '{}'", self.broadcast_address);
+        trace!("Sending Beacon '{}' to: '{}'", String::from_utf8_lossy(&self.beacon_payload[4..]),
+            self.broadcast_address);
         self.socket.send_to(&self.beacon_payload, &self.broadcast_address)
     }
 }
@@ -206,7 +207,6 @@ impl BeaconListener {
             if magic_number == MAGIC_NUMBER {
                 let service_port = array_of_u8_to_u16(&buffer[2..4]);
                 let service_name = buffer[4..number_of_bytes].to_vec();
-                trace!("Message received from IP: '{}' on port: '{}'", source_address.ip(), source_address.port());
 
                 return Ok(Beacon {
                     service_ip: source_address.ip().to_string(),
