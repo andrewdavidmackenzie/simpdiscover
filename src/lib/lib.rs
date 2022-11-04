@@ -9,18 +9,20 @@
 //! use simpdiscoverylib::{BeaconSender, BeaconListener};
 //! use std::time::Duration;
 //!
-//! let port = 9001;
+//! let service_port = 9002;
+//! let broadcast_port = 9999;
+//!
 //! let my_service_name = "_my_service._tcp.local".as_bytes();
-//! if let Ok(beacon) = BeaconSender::new(port, my_service_name, 9002) {
+//! if let Ok(beacon) = BeaconSender::new(service_port, my_service_name, broadcast_port) {
 //!     std::thread::spawn(move || {
 //!         let _ = beacon.send_loop(Duration::from_secs(1));
 //!     });
 //! }
 //!
-//! let listener = BeaconListener::new(my_service_name, 9002).expect("Could not create listener");
+//! let listener = BeaconListener::new(my_service_name, broadcast_port).expect("Could not create listener");
 //! let beacon = listener.wait(None).expect("Failed to receive beacon");
 //! assert_eq!(beacon.service_name, my_service_name, "Service name received in beacon doesn't match the one expected");
-//! assert_eq!(beacon.service_port, port);
+//! assert_eq!(beacon.service_port, service_port);
 //! ```
 
 use std::net::UdpSocket;
@@ -47,7 +49,9 @@ const MAGIC_NUMBER: u16 = 0xbeef;
 /// use simpdiscoverylib::{BeaconSender, BeaconListener};
 /// use std::time::Duration;
 ///
-/// if let Ok(beacon) = BeaconSender::new(9001, "Hello".as_bytes(), 9002) {
+/// let broadcast_port = 9999;
+///
+/// if let Ok(beacon) = BeaconSender::new(9002, "Hello".as_bytes(), broadcast_port) {
 ///     std::thread::spawn(move || {
 ///         let _ = beacon.send_loop(Duration::from_secs(1));
 ///     });
@@ -178,12 +182,12 @@ impl BeaconListener {
             let beacon = self.receive_one_beacon()?;
 
             if beacon.service_name == self.service_name {
-                trace!("Beacon '{}' matches filter: returning beacon",
-                    String::from_utf8_lossy(&beacon.service_name));
+                trace!("Beacon '{}' matches filter '{}': returning beacon",
+                    String::from_utf8_lossy(&beacon.service_name), String::from_utf8_lossy(&self.service_name));
                 return Ok(beacon);
             } else {
-                trace!("Beacon '{}' does not match filter: ignoring",
-                    String::from_utf8_lossy(&beacon.service_name));
+                trace!("Beacon '{}' does not match filter '{}': ignoring",
+                    String::from_utf8_lossy(&beacon.service_name), String::from_utf8_lossy(&self.service_name));
             }
         }
     }
