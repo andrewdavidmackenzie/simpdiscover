@@ -8,9 +8,10 @@
 //! ```
 //! use simpdiscoverylib::{BeaconSender, BeaconListener};
 //! use std::time::Duration;
+//! use portpicker::pick_unused_port;
 //!
-//! let service_port = 9002;
-//! let broadcast_port = 9999;
+//! let service_port = pick_unused_port().expect("Could not get a free port");
+//! let broadcast_port = pick_unused_port().expect("Could not get a free port");
 //!
 //! let my_service_name = "_my_service._tcp.local".as_bytes();
 //! if let Ok(beacon) = BeaconSender::new(service_port, my_service_name, broadcast_port) {
@@ -48,8 +49,9 @@ const MAGIC_NUMBER: u16 = 0xbeef;
 /// ```
 /// use simpdiscoverylib::{BeaconSender, BeaconListener};
 /// use std::time::Duration;
+/// use portpicker::pick_unused_port;
 ///
-/// let broadcast_port = 9999;
+/// let broadcast_port = pick_unused_port().expect("Could not get a free port");
 ///
 /// if let Ok(beacon) = BeaconSender::new(9002, "Hello".as_bytes(), broadcast_port) {
 ///     std::thread::spawn(move || {
