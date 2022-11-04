@@ -173,15 +173,17 @@ impl BeaconListener {
         self.socket.set_read_timeout(timeout)?;
         info!("Read timeout set to: {:?}", timeout);
 
-        info!("Waiting for beacon");
+        info!("Waiting for beacon matching '{}'", String::from_utf8_lossy(&self.service_name));
         loop {
             let beacon = self.receive_one_beacon()?;
 
             if beacon.service_name == self.service_name {
-                trace!("Message matches filter: returning beacon");
+                trace!("Beacon '{}' matches filter: returning beacon",
+                    String::from_utf8_lossy(&beacon.service_name));
                 return Ok(beacon);
             } else {
-                trace!("Message does not match filter: ignoring");
+                trace!("Beacon '{}' does not match filter: ignoring",
+                    String::from_utf8_lossy(&beacon.service_name));
             }
         }
     }
