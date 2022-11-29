@@ -24,7 +24,7 @@ path = "src/lib/lib.rs"
 
 [dependencies]
 log = "0.4.6"
-simplog = "~1.5" # Only used by smaple binaries provided, not a dependency of the library
+simplog = "~1.6" # Only used by smaple binaries provided, not a dependency of the library
 
 [dev-dependencies]
 portpicker = "0.1.1"
