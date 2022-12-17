@@ -2,7 +2,7 @@ use simpdiscoverylib::BeaconSender;
 use simplog::SimpleLogger;
 use std::time::Duration;
 
-const BEACON_TEST_SERVICE_PORT : u16 = 9999;
+const BEACON_TEST_SERVICE_PORT : u16 = 15002;
 const BEACON_TEST_SERVICE_NAME :&str = "BeaconTestService";
 
 fn main() -> std::io::Result<()> {
