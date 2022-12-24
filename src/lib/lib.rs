@@ -31,8 +31,29 @@ use log::{info, trace};
 use std::fmt::Formatter;
 use std::io;
 
+/// A broadcast address is always relative to a given network. When you have a network, you can
+/// compute its broadcast address by replacing all the host bits with 1s; simply put, the broadcast
+/// address is the highest numbered address you can have on the network, while the network address
+/// is the lowest one (with all host bits set to 0s); this is why you can't use either of them
+/// as actual host addresses: they are reserved for this use.
+///
+/// If your network is `192.168.1.0/24`, then your network address will be `192.168.1.0`
+/// and your broadcast address will be `192.168.1.255`
+///
+/// If your network is `192.168.0.0/16`, then your network address will be `192.168.0.0`
+/// and your broadcast address will be `192.168.255.255`
+///
+/// `255.255.255.255` is a special broadcast address, which means "this network".
+/// It lets you send a broadcast packet to the network you're connected to, without actually
+/// caring about its address.
+///
+/// See [wikipedia article](https://en.wikipedia.org/wiki/Broadcast_address) for more info
 const BROADCAST_ADDRESS : &str = "255.255.255.255";
+
+/// The address `0.0.0.0` is known as the "zero network", which in Internet Protocol standards
+/// stands for this network, i.e. the local network.
 const LISTENING_ADDRESS : &str = "0.0.0.0";
+
 const MAX_INCOMING_BEACON_SIZE : usize = 1024;
 const MAGIC_NUMBER: u16 = 0xbeef;
 
@@ -171,6 +192,7 @@ impl BeaconListener {
                 io::Error::new(io::ErrorKind::AddrInUse,
                                format!("SimpDiscover::BeaconListener could not bind to UdpSocket at {listening_address} ({e})")))?;
         trace!("Socket bound to: {}", listening_address);
+        socket.set_broadcast(true)?;
 
         Ok(Self {
             socket,
