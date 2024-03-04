@@ -1,11 +1,13 @@
 use simpdiscoverylib::BeaconListener;
-use simplog::SimpleLogger;
+use env_logger::Builder;
 use std::time::Duration;
+use log::LevelFilter;
 
 const BEACON_TEST_SERVICE_NAME :&str = "BeaconTestService";
 
 fn main() -> std::io::Result<()> {
-    SimpleLogger::init_prefix(Some("info"), false);
+    let mut builder = Builder::from_default_env();
+    builder.filter_level(LevelFilter::Info).init();
 
     let args : Vec<String> = std::env::args().collect();
     let service_name = match args.len() {

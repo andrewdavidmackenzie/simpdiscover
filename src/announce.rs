@@ -1,12 +1,14 @@
 use simpdiscoverylib::BeaconSender;
-use simplog::SimpleLogger;
+use env_logger::Builder;
 use std::time::Duration;
+use log::LevelFilter;
 
 const BEACON_TEST_SERVICE_PORT : u16 = 15002;
 const BEACON_TEST_SERVICE_NAME :&str = "BeaconTestService";
 
 fn main() -> std::io::Result<()> {
-    SimpleLogger::init_prefix(Some("info"), false);
+    let mut builder = Builder::from_default_env();
+    builder.filter_level(LevelFilter::Info).init();
 
     println!("\nHit Control-C to kill the process and stop beacon sending\n");
 
